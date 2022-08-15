@@ -7,7 +7,7 @@ import time
 #current_time = time.strftime("%H:%M:%S", t)
 #print(current_time)
 #################################################################################################################################
-def init():
+def init(): #creacion de la base de datos
     if os.path.exists(".pbm"):
         print("Database already exists")
     else:
@@ -21,23 +21,17 @@ def ignore():
     if os.path.exists(".pbmignore"):
         1+1
 #################################################################################################################################
-def directory_scan(path,subdirs):
-    files=os.listdir(path) #Listamos todos los elementos de el directorio
-    directories= [] #Lista para guradar las subcarpetas
-    files_list=[] #Los nombres de los archivos 
-    files_to_open=[] ##Lista para guardar archivos como objetos
-    hashes=[] #Lista para guardar los hashes
-    for i in files: #Leemos todos los archivos 
-        if os.path.isdir(i):#Si es carpeta la guardamos 
-            directory_scan(i) #Guardamos la carptea en el directorio de carpetas
-        else: 
-            file_hashed=hash_file(i)
-    hashes.append(sha512.hexdigest()) #Guardamos el archivo en la lista de hashes de forma leegible
-    files_list.append(i) 
-    subdirs[path]=directories #añadimos los subdirectorios que contiene el directorio actual
-    return files_list,hashes
+def hash_dir(dir,dirs_dict): #Hashea todos los elementos de un directorio y regresa los hashes
+    current_dir_hashes=list()
+    current_dir_names=list()
+    for i in os.lisdir():
+        if os.path.isdir(i):
+            continue
+        else:
+            cuurent_dir_hashes.append(hash_file(i))
+            current_dir_names.append(i)
 #################################################################################################################################
-def hash_file(file):
+def hash_file(file): #Da el hash de el archivo (completado)
     BUF_SIZE = 65536 #El tamaño en el que el archivo se va adividir
     file=open(i,"rb") #abrimos el archivo para leer sus bytes
     sha512=hashlib.sha512() #creamos un obejeto en el que se guardara la shasum
@@ -48,7 +42,7 @@ def hash_file(file):
         sha512.update(data) #Actualizamos la shasum de el archivo que estamos leyendo con el nuevo chachito que obtivumos
         return sha512
 #################################################################################################################################
-def formater(files,hashes,dire="."):
+def formater(files,hashes,dire="."): #Lee los nombres de los archivos y hashes y los guarda en .pbm (completado)
     len_hash=len(hashes) 
     len_list=len(files)
     if len_hash!=len_list: #Nos aseguramos que haya igual de hashes que de elementos
@@ -63,19 +57,7 @@ def formater(files,hashes,dire="."):
        database.write(dire+"/"+files[i]+"   "+hashes[i]+"\n") #escribimos el archivo y su hash
     database.close() #cerramos el archivo
 #################################################################################################################################
-def recursive(dirs):
-    dirs2=dirs
-    for i in dirs2:
-        for j in dirs2[i]:
-            files,hashes=hash_directory(j,dirs2)
-            formater(files,hashes)
-#################################################################################################################################
 #t2 = time.localtime()
 #current_time2 = time.strftime("%H:%M:%S", t2)
 #print(current_time2)
 #################################################################################################################################
-subdirs={}
-files,hashes=hash_directory(".",subdirs)
-formater(files,hashes)
-#recursive(subdirs)
-print(subdirs)
