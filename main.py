@@ -14,9 +14,24 @@ def init(): #creacion de la base de datos (completado)
         database.write("INIT "+current_time)
         database.close()
 #################################################################################################################################
-def ignore():
+def ignore(): #Elimina todos las lineas de los archivos hasehados que esten en el archivo ".pbmignore"
     if os.path.exists(".pbmignore"):
-        1+1
+        ignore=open(".pbmignore", "r").read().splitlines()
+        db=open(".pbm","r")
+        db_content=db.read().splitlines()
+        for i in db_content:
+            for j in ignore:
+                if j in i:
+                    db_content.remove(i)
+                    ignore.remove(j)
+        db.close()
+        all="\n".join(db)
+        db=open(".pbm","w")
+        db.write(all)
+        db.close()
+    else:
+        pass
+    
 #################################################################################################################################
 def hash_dir(dir): #Hashea todos los elementos de un directorio y regresa los hashes
     current_dir_hashes=list()
@@ -63,6 +78,9 @@ def formater(files,hashes): #Lee los nombres de los archivos y hashes y los guar
     database.close() #cerramos el archivo
 #################################################################################################################################
 def recursive(path): #
+    if os.path.exists(".pbm")==False: #Nos aseguramos que ya existea una base de datos inicializada
+        print("Database don exist run: pbm init")
+        return
     listu=list(Path(path).rglob("*"))
     files=[]
     hashes=[]
@@ -71,8 +89,4 @@ def recursive(path): #
         hashes.append(hash_file("./"+str(i)))
     formater(files,hashes)
 #################################################################################################################################
-#t2 = time.localtime()
-#current_time2 = time.strftime("%H:%M:%S", t2)
-#print(current_time2)
 recursive(".")
-#################################################################################################################################
