@@ -17,31 +17,24 @@ def init(): #creacion de la base de datos (completado)
 def ignore(): #Elimina todos las lineas de los archivos hasehados que esten en el archivo ".pbmignore"
     if os.path.exists(".pbmignore"):
         ignore=open(".pbmignore", "r").read().splitlines()
-        db=open(".pbm","r")
-        db_content=db.read().splitlines()
-        for i in db_content:
-            for j in ignore:
-                if j in i:
-                    db_content.remove(i)
-                    ignore.remove(j)
-        db.close()
-        all="\n".join(db)
-        db=open(".pbm","w")
-        db.write(all)
-        db.close()
+        return ignore
     else:
-        pass
+        return []
     
 #################################################################################################################################
 def hash_dir(dir): #Hashea todos los elementos de un directorio y regresa los hashes
     current_dir_hashes=list()
     current_dir_names=list()
+    ignore_files=ignore()
     for i in os.listdir(dir):
         if os.path.isdir(i):
             continue
         else:
-            current_dir_hashes.append(hash_file(i))
-            current_dir_names.append(i)
+            for j in ignore_files:
+                if str(i).find(j) != -1:
+                    continue
+                current_dir_hashes.append(hash_file(i))
+                current_dir_names.append(i)
     return current_dir_names,current_dir_hashes
 #################################################################################################################################
 def hash_file(file): #Da el hash de el archivo (completado)
@@ -74,19 +67,25 @@ def formater(files,hashes): #Lee los nombres de los archivos y hashes y los guar
         try:
             database.write(files[i]+"   "+hashes[i].hexdigest()+"\n") #escribimos el archivo y su hash
         except:
-            database.write(files[i]+"   imposible de hashear\n") #escribimos el archivo y su hash
+            database.write(files[i]+"   imposible_de_hashear\n") #escribimos el archivo y su hash
     database.close() #cerramos el archivo
 #################################################################################################################################
-def recursive(path): #
+def recursive(path): #Escanea y hashea un directorio de forma recursiva (completado)
     if os.path.exists(".pbm")==False: #Nos aseguramos que ya existea una base de datos inicializada
         print("Database don exist run: pbm init")
         return
     listu=list(Path(path).rglob("*"))
     files=[]
     hashes=[]
+    ignore_files=ignore()
     for i in listu:
-        files.append("./"+str(i))
-        hashes.append(hash_file("./"+str(i)))
+        if os.path.isdir(str(i)):
+            continue
+        for j in ignore_files:
+            if str(i).find(j) != -1:
+                continue
+            files.append("./"+str(i))
+            hashes.append(hash_file("./"+str(i)))
     formater(files,hashes)
 #################################################################################################################################
 recursive(".")
