@@ -2,7 +2,8 @@ import os
 import hashlib
 from os.path import isdir
 from pathlib import Path
-import time 
+import time
+from typing import List 
 #################################################################################################################################
 def init(): #creacion de la base de datos (completado)
     if os.path.exists(".pbm"):
@@ -65,21 +66,21 @@ def formater(files,hashes): #Lee los nombres de los archivos y hashes y los guar
     database=open(".pbm","a")#Abrimos la base de datos
     for i in range(len_hash): #pasamos por cada elemento de nustras listas
         try:
-            database.write(files[i]+"   "+hashes[i].hexdigest()+"\n") #escribimos el archivo y su hash
+            database.write(files[i]+"▓¥»╚▓¥»╚"+hashes[i].hexdigest()+"\n") #escribimos el archivo y su hash
         except:
-            database.write(files[i]+"   imposible_de_hashear\n") #escribimos el archivo y su hash
+            database.write(files[i]+"▓¥»╚▓¥»╚imposible_de_hashear\n") #escribimos el archivo y su hash
     database.close() #cerramos el archivo
 #################################################################################################################################
-def recursive(path): #Escanea y hashea un directorio de forma recursiva (completado)
+def recursive(pathe): #Escanea y hashea un directorio de forma recursiva (completado)
     if os.path.exists(".pbm")==False: #Nos aseguramos que ya existea una base de datos inicializada
         print("Database don exist run: pbm init")
         return
-    listu=list(Path(path).rglob("*"))
+    listu=list(Path(pathe).rglob("*"))
     files=[]
     hashes=[]
     ignore_files=ignore()
     for i in listu:
-        if os.path.isdir(str(i)):
+        if isdir(str(i)):
             continue
         for j in ignore_files:
             if str(i).find(j) != -1:
@@ -88,4 +89,52 @@ def recursive(path): #Escanea y hashea un directorio de forma recursiva (complet
             hashes.append(hash_file("./"+str(i)))
     formater(files,hashes)
 #################################################################################################################################
-recursive(".")
+def GetDataBase(): #Lee el archivo .pbm y regresa un alista de tuplas con el path de el archivo y el hash (completado)
+    databse=list()
+    file=open(".pbm","r")
+    for h in file.read().splitlines():
+        i,j=h.split("▓¥»╚▓¥»╚")
+        databse.append((i,j))
+    return databse
+
+#################################################################################################################################
+def Compare(): #Obtiene los archvos que han sido modificados entre el .pbm y la carpeta y los regresa en una lista (completado)
+    database=GetDataBase()
+    ArchivosDiferentes=list()
+    for i in database:
+        #print(hash_file(i[0]).hexdigest())
+        if i[1]=="imposible_de_hashear":
+            continue
+        if i[1]!=hash_file(i[0]).hexdigest():
+#            print("diferentes")
+#            print(i[0])
+#            print(hash_file(i[0]).hexdigest())
+             ArchivosDiferentes.append(i[0])  
+    return ArchivosDiferentes
+#################################################################################################################################
+def EliminatedFiles(): #Busca los archivos que estaban en la database pero ya no estan en el directorio
+    Database=GetDataBase()
+    listu=list(Path(".").rglob("*"))
+    eliminatedFiles=list()
+
+    for i in listu:
+        i="./"+str(i)
+        if isdir(i):
+            continue
+        print(i)
+#        if i in Database:
+#            continue
+#        else:
+#            eliminatedFiles.append(i)
+#    
+#################################################################################################################################
+def getAllFiles(lista):
+    listu=list(Path(".").rglob("*"))
+    for i in listu:
+        i="./"+str(i)
+        if isdir(i):
+            continue
+
+#################################################################################################################################
+
+print(EliminatedFiles())
