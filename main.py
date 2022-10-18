@@ -136,6 +136,8 @@ def DeletedAndUntracked():
     Database=GetDataBaseNames()
     CurrenteFiles=list()
     listu=list(Path(".").rglob("*"))
+    ignore_files=ignore()
+    filesignored=list()
 
     for i in listu:
         if isdir(i):
@@ -144,6 +146,15 @@ def DeletedAndUntracked():
 
     Deleted=[x for x in Database if x not in CurrenteFiles]
     untracked=[x for x in CurrenteFiles if x not in Database]
+
+    for i in untracked:
+        for j in ignore_files:
+            if i.find(j) == -1:
+                continue
+            else:
+                filesignored.append(i)
+    untracked=[x for x in untracked if x not in filesignored]
+
     return Deleted, untracked
 
 #################################################################################################################################
@@ -207,5 +218,3 @@ def main():
 #################################################################################################################################
 #if __name__ == "__main__":
 #                main()
-status()
-#print(Compare())
