@@ -11,8 +11,9 @@ def init(): #creacion de la base de datos (completado)
     else:
         database=open(".pbm","a")
         t = time.localtime()
-        current_time = time.strftime("%H:%M:%S", t)
+        current_time = time.strftime("Database Created the %d/%m at %H:%M:%S\n", t)
         database.write("INIT "+current_time)
+        database.write("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n")
         database.close()
 #################################################################################################################################
 def ignore(): #Elimina todos las lineas de los archivos hasehados que esten en el archivo ".pbmignore"
@@ -104,10 +105,15 @@ def recursive(pathe): #Escanea y hashea un directorio de forma recursiva (comple
             hashes.append(hash_file("./"+str(i)))
     formater(files,hashes)
 #################################################################################################################################
+def GetDate():
+    file=open(".pbm","r")
+    date = file.read().splitlines()[0].split()
+    return date[4], date[6]
+#################################################################################################################################
 def GetDataBase(): #Lee el archivo .pbm y regresa un alista de tuplas con el path de el archivo y el hash (completado)
     databse=list()
     file=open(".pbm","r")
-    for h in file.read().splitlines():
+    for h in file.read().splitlines()[2:]:
         i,j=h.split("▓¥»╚▓¥»╚")
         databse.append((i,j))
     return databse
@@ -116,7 +122,7 @@ def GetDataBase(): #Lee el archivo .pbm y regresa un alista de tuplas con el pat
 def GetDataBaseNames(): #Lee el archivo .pbm y regresa una lista de los nombres de los archivos (completado)
     databse=list()
     file=open(".pbm","r")
-    for h in file.read().splitlines():
+    for h in file.read().splitlines()[2:]:
         i,_=h.split("▓¥»╚▓¥»╚")
         databse.append(i)
     return databse
@@ -158,6 +164,9 @@ def DeletedAndUntracked():
     return Deleted, untracked
 
 #################################################################################################################################
+#def Update():
+
+#################################################################################################################################
 def status():
     Deleted, untracked=DeletedAndUntracked()
     ArvhivosDiferentes=Compare()
@@ -166,8 +175,11 @@ def status():
     Diferenteslen=len(ArvhivosDiferentes)
     Untrackedlen=len(untracked)
 
+    date,time=GetDate()
+    print(f"Last Database Update, the {date} at {time}\n\n")
+
     if deletedlen==0:
-        print("No files deleted")
+        print("No files deleted\n")
     else:
         print(f"{deletedlen} files were deleted\033[1m")
         for i in Deleted:
@@ -175,7 +187,7 @@ def status():
         print("\033[0m")
 
     if Untrackedlen==0:
-        print("No untracked files")
+        print("No untracked files\n")
     else:
         print(f"{Untrackedlen} files are untracked \033[1m")
         for i in untracked:
@@ -183,7 +195,7 @@ def status():
         print("\033[0m")
 
     if Diferenteslen==0:
-        print("No files changed")
+        print("No files changed\n")
     else:
         print(f"{Diferenteslen} files were changed\033[1m")
         for i in ArvhivosDiferentes:
@@ -217,4 +229,8 @@ def main():
 
 #################################################################################################################################
 #if __name__ == "__main__":
-#                main()
+#status()
+#init()
+#recursive(".")
+##                main()
+#update()
