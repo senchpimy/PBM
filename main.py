@@ -53,14 +53,13 @@ def hash_file(file): #Da el hash de el archivo (completado)
         if not data: #Se acaba el loop cuando ya no hay mas bytes en el archivo
             break
         sha512.update(data) #Actualizamos la shasum de el archivo que estamos leyendo con el nuevo chachito que obtivumos
-        return sha512
+    return sha512
 #################################################################################################################################
 def hash_file_special(file): #Por algun motivo no queria aplicar la propiedad .hexdigest() a la salida de esta funcion por que la detectaba como str
     BUF_SIZE = 65536 #El tamaño en el que el archivo se va adividir
     try:
         file_o=open(file,"rb") #abrimos el archivo para leer sus bytes
     except:
-        #return hashlib.sha512(str("0").encode("utf-8"))
         return "0"
     sha512=hashlib.sha512() #creamos un obejeto en el que se guardara la shasum
     while True: #Leemos el archivo hast aque ya no halla info 
@@ -68,7 +67,10 @@ def hash_file_special(file): #Por algun motivo no queria aplicar la propiedad .h
         if not data: #Se acaba el loop cuando ya no hay mas bytes en el archivo
             break
         sha512.update(data) #Actualizamos la shasum de el archivo que estamos leyendo con el nuevo chachito que obtivumos
-        return sha512.hexdigest()
+    if str(sha512.hexdigest())!=None:
+            return sha512.hexdigest()
+    else:
+            return "Imposible de hashear"
 #################################################################################################################################
 def formater(files,hashes): #Lee los nombres de los archivos y hashes y los guarda en .pbm (completado)
     len_hash=len(hashes) 
@@ -76,16 +78,20 @@ def formater(files,hashes): #Lee los nombres de los archivos y hashes y los guar
     if len_hash!=len_list: #Nos aseguramos que haya igual de hashes que de elementos
         print("Numero de archivos incongruente con numero de hashes\nNumero de archivos {}\nNumer de hashes:{}".format(len_list,len_hash))
         return
-    if os.path.exists(".pbm")==False: #Nos aseguramos que ya existea una base de datos inicializada
-        print("Database don exist run: pbm init")
-        return
-
     database=open(".pbm","a")#Abrimos la base de datos
     for i in range(len_hash): #pasamos por cada elemento de nustras listas
         try:
             database.write(files[i]+"▓¥»╚▓¥»╚"+hashes[i].hexdigest()+"\n") #escribimos el archivo y su hash
         except:
             database.write(files[i]+"▓¥»╚▓¥»╚imposible_de_hashear\n") #escribimos el archivo y su hash
+    database.close() #cerramos el archivo
+#################################################################################################################################
+def singleformater(files): #Lee los nombres de los archivos y hashes y los guarda en .pbm (completado)
+    database=open(".pbm","a")#Abrimos la base de datos
+    try:
+            database.write(files+"▓¥»╚▓¥»╚"+hash_file_special(files)+"\n") #escribimos el archivo y su hash
+    except:
+            database.write(files+"▓¥»╚▓¥»╚imposible_de_hashear\n") #escribimos el archivo y su hash
     database.close() #cerramos el archivo
 #################################################################################################################################
 def recursive(pathe): #Escanea y hashea un directorio de forma recursiva (completado)
@@ -108,8 +114,10 @@ def recursive(pathe): #Escanea y hashea un directorio de forma recursiva (comple
 #################################################################################################################################
 def GetDate():
     file=open(".pbm","r")
-    date = file.read().splitlines()[0].split()
-    return date[4], date[6]
+    date = file.readline().split()
+    if len(date)>6:
+        return date[4], date[6]
+    else: return date[2], date[4]
 #################################################################################################################################
 def GetDataBase(): #Lee el archivo .pbm y regresa un alista de tuplas con el path de el archivo y el hash (completado)
     databse=list()
@@ -128,16 +136,6 @@ def GetDataBaseNames(): #Lee el archivo .pbm y regresa una lista de los nombres 
         databse.append(i)
     return databse
 
-#################################################################################################################################
-def Compare(): #Obtiene los archvos que han sido modificados entre el .pbm y la carpeta y los regresa en una lista (completado)
-    database=GetDataBase()
-    ArchivosDiferentes=list()
-    for i in database:
-        if i[1]=="imposible_de_hashear":
-            continue
-        if i[1]!=hash_file_special(i[0]):
-             ArchivosDiferentes.append(i[0])
-    return ArchivosDiferentes
 #################################################################################################################################
 def DeletedAndUntracked():
     Database=GetDataBaseNames()
@@ -164,6 +162,18 @@ def DeletedAndUntracked():
 
     return Deleted, untracked
 
+#################################################################################################################################
+def Compare(): #Obtiene los archvos que han sido modificados entre el .pbm y la carpeta y los regresa en una lista (completado)
+    database=GetDataBase()
+    ArchivosDiferentes=list()
+    for i in database:
+        if i[1]=="imposible_de_hashear":
+            continue
+        if i[1]!=hash_file_special(i[0]):
+             ArchivosDiferentes.append(i[0])
+    Deleted,_=DeletedAndUntracked()
+    ArchivosDiferentes=[x for x in ArchivosDiferentes if x not in Deleted]
+    return ArchivosDiferentes
 #################################################################################################################################
 def status():
     Deleted, untracked=DeletedAndUntracked()
@@ -210,19 +220,52 @@ def UpdateDate():
     t.write(remainder)
     t.close()
 #################################################################################################################################
+def remove_line(stringtoskip):
+    fileName="./.pbm"
+    with open(fileName,'r') as read_file:
+        lines = read_file.readlines()
+
+    with open(fileName,'w') as write_file:
+        for line in lines:
+            if line.find(stringtoskip)!=-1:
+                continue
+            else:
+                write_file.write(line)
+ #################################################################################################################################
+def Updateline(strinput):
+    fileName="./.pbm"
+    with open(fileName,'r') as read_file:
+        lines = read_file.readlines()
+    
+    with open(fileName,'w') as write_file:
+        for line in lines:
+            if line.startswith(strinput+"▓"):
+                write_file.write(strinput+"▓¥»╚▓¥»╚"+hash_file_special(strinput)+"\n")
+            else:
+                write_file.write(line)
+#################################################################################################################################
 def Update():
-              UpdateDate()
-              ArvhivosDiferentes=Compare()
-              Deleted, _=DeletedAndUntracked()
-              linestodelete=Deleted+ArvhivosDiferentes
-              database=GetDataBaseNames()
-              print(database)
-              Database=open("./.pbmt","w")
-              for index, item in enumerate(database):
-                print(index,item)
+    UpdateDate()
+    ArvhivosDiferentes=Compare()
+    Deleted, _=DeletedAndUntracked()
+    for i in Deleted:remove_line(i)
+    for j in ArvhivosDiferentes:Updateline(j)
+    print("UPDATE FINALIZED")
 
-
-
+#################################################################################################################################
+def Copy(location):
+    if os.path.exists(location):
+        if isdir(location):
+            if location.startswith("~"):
+                    location=os.path.expanduser('~')+location
+            for i in GetDataBaseNames():
+                shutil.copyfile(i,location+i[1:])
+    else:print("La ubicacion no es valida")
+#################################################################################################################################
+def Add(file):
+    if os.path.exists(file):
+        singleformater(file)
+    else:print("El archivo no existe")
 #################################################################################################################################
 def Use():
     print('\033[1m'+"PBM is a git-like backups manager"+'\033[0m\n')
@@ -230,7 +273,7 @@ def Use():
     print('\033[91m'+"recursive             "+'\033[0m'+"Adds all the files recursively")
     print('\033[91m'+"update                "+'\033[0m'+"Update the database")
     print('\033[91m'+"copy \033[92m\033[4m\x1B[3m*location*"+'\033[0m       '+"Copy the files in the database to a specified location")
-    print('\033[91m'+"add                   "+'\033[0m'+"Add a file to the database")
+    print('\033[91m'+"add \033[92m\033[4m\x1B[3m*file*"+'\033[0m            '+"Add a file to the database")
     print('\033[91m'+"status                "+'\033[0m'+"Get the status of the database")
     print('')
 
@@ -246,15 +289,16 @@ def main():
         recursive(".")
     elif sys.argv[1]=="status": 
         status()
+    elif sys.argv[1]=="update": 
+        Update()
+    elif sys.argv[1]=="copy": 
+        Copy(sys.argv[2])
+    elif sys.argv[1]=="add": 
+        Add(sys.argv[2])
     else:
         print("Invalid option\n")
         Use()
 
 #################################################################################################################################
-#if __name__ == "__main__":
-#status()
-#init()
-#recursive(".")
-##                main()
-#Update()
-UpdateDate()
+if __name__ == "__main__":
+    main()
