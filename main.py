@@ -3,6 +3,7 @@ import hashlib
 from os.path import isdir
 from pathlib import Path
 import time
+import shutil
 import sys
 #################################################################################################################################
 def init(): #creacion de la base de datos (completado)
@@ -164,9 +165,6 @@ def DeletedAndUntracked():
     return Deleted, untracked
 
 #################################################################################################################################
-#def Update():
-
-#################################################################################################################################
 def status():
     Deleted, untracked=DeletedAndUntracked()
     ArvhivosDiferentes=Compare()
@@ -202,6 +200,30 @@ def status():
             print(i)
         print("\033[0m")
 #################################################################################################################################
+def UpdateDate():
+    t = time.localtime()
+    UpdateText ="Updated"+ time.strftime(" the %d/%m at %H:%M:%S\n", t)
+    f = open("./.pbm")
+    _, remainder = f.readline(), f.read()
+    t = open("./.pbm","w")
+    t.write(UpdateText)
+    t.write(remainder)
+    t.close()
+#################################################################################################################################
+def Update():
+              UpdateDate()
+              ArvhivosDiferentes=Compare()
+              Deleted, _=DeletedAndUntracked()
+              linestodelete=Deleted+ArvhivosDiferentes
+              database=GetDataBaseNames()
+              print(database)
+              Database=open("./.pbmt","w")
+              for index, item in enumerate(database):
+                print(index,item)
+
+
+
+#################################################################################################################################
 def Use():
     print('\033[1m'+"PBM is a git-like backups manager"+'\033[0m\n')
     print('\033[91m'+"init                  "+'\033[0m'+"Starts a Database")
@@ -220,6 +242,7 @@ def main():
     elif sys.argv[1]=="init": 
         init()
     elif sys.argv[1]=="recursive": 
+        UpdateDate()
         recursive(".")
     elif sys.argv[1]=="status": 
         status()
@@ -233,4 +256,5 @@ def main():
 #init()
 #recursive(".")
 ##                main()
-#update()
+#Update()
+UpdateDate()
